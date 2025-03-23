@@ -8,6 +8,8 @@ const cors = require('cors');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
+const nodemailer = require('nodemailer');
+
 
 const app = express();
 const server = http.createServer(app);
@@ -92,6 +94,43 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Error logging in:', error);
     res.json({ success: false, message: 'Server error.' });
+  }
+});
+
+app.get('/chat', (req, res) => {
+  res.render('chat'); // No need to add .ejs, as EJS is set as the view engine
+});
+
+
+// Handle Contact Form Submission
+app.post('/submit', async (req, res) => {
+  const { name, email, phone, message } = req.body;
+
+  try {
+      // Nodemailer Transporter Setup (Using Gmail)
+      let transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+              user: process.env.EMAIL_USER, // Your email (Use environment variables for security)
+              pass: process.env.EMAIL_PASS  // Your email password or App Password
+          }
+      });
+
+      // Email Content
+      let mailOptions = {
+          from: email,
+          to: 'highrontech.united@gmail.com',
+          subject: `New Contact Message from ${name}`,
+          text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\n\nMessage:\n${message}`
+      };
+
+      // Send Email
+      await transporter.sendMail(mailOptions);
+      res.json({ success: true, message: 'Message sent successfully!' });
+
+  } catch (error) {
+      console.error('Error sending email:', error);
+      res.status(500).json({ success: false, message: 'Failed to send message. Try again later.' });
   }
 });
 
