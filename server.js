@@ -134,6 +134,30 @@ app.get('/home', (req, res) => {
   res.render('home');
 });
 
+app.get('/services', (req, res) => {
+  res.render('services');
+});
+
+app.get('/gallery', (req, res) => {
+  res.render('gallery');
+});
+
+app.get('/team', (req, res) => {
+  res.render('team');
+});
+
+app.get('/schedule', (req, res) => {
+  res.render('schedule');
+});
+
+app.get('/reviews', (req, res) => {
+  res.render('reviews');
+});
+
+app.get('/contact', (req, res) => {
+  res.render('contact');
+});
+
 // Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
