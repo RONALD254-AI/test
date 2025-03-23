@@ -40,7 +40,7 @@ nav .nav-links a:hover {
 
 /* Hero Section */
 .hero {
-    background: url('/images/hero-bg.jpg') no-repeat center cover;
+    background:url(hero-bg.jpg);
     color: #fff;
     padding: 5rem 2rem;
     text-align: center;
