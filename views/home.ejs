@@ -1,0 +1,28 @@
+<!-- views/home.ejs -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Home - HighRon Tech</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Home Page</h2>
+      <p>Welcome to HighRon Tech!</p>
+      <button id="logoutBtn">Logout</button>
+    </div>
+
+    <script>
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        // If no user in localStorage, redirect to login
+        window.location.href = '/login';
+      }
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      });
+    </script>
+  </body>
+</html>
