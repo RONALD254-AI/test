@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Reviews - HighRon Tech Company</title>
+    <link rel="stylesheet" href="styles1.css">
+    <link href="https://fonts.googleapis.com/css2?family=Piazzolla:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="logo">HighRon Tech</div>
+        <ul class="nav-links">
+            <li><a href="/home">Home</a></li>
+            <li><a href="/services">Services</a></li>
+            <li><a href="/gallery">Gallery</a></li>
+            <li><a href="/team">Team</a></li>
+            <li><a href="/schedule">Scheduling</a></li>
+            <li><a href="/reviews">Customer Reviews</a></li>
+            <li><a href="/contact">Contact Us</a></li>
+        </ul>
+    </nav>
+
+    <!-- Reviews Section -->
+    <section class="reviews">
+        <h1>Customer Reviews</h1>
+        <div class="carousel">
+            <div class="carousel-inner">
+                <!-- Review 1 -->
+                <div class="carousel-item active">
+                    <p>"HighRon Tech Company transformed our business operations with their innovative technology solutions. Their team is knowledgeable and professional, and we couldn't be happier with the results!"</p>
+                    <p><strong>Example Customer Review</strong></p>
+                    <p>1 / 2</p>
+                </div>
+
+                <!-- Review 2 -->
+                <div class="carousel-item">
+                    <p>"Working with HighRon Tech has been a game-changer for us. Their dedication to advancing technology for a better future is evident in every project they undertake. Highly recommended!"</p>
+                    <p><strong>Example Customer Review</strong></p>
+                    <p>2 / 2</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy;2023 HighRon Tech Company. All rights reserved.</marquee></p>
+    </footer>
+
+    <!-- JavaScript for Carousel -->
+    <script>
+        let currentIndex = 0;
+const reviews = document.querySelectorAll('.carousel-item');
+const totalReviews = reviews.length;
+
+function showNextReview() {
+    // Hide the current review
+    reviews[currentIndex].classList.remove('active');
+    reviews[currentIndex].classList.add('prev'); // Slide out to the left
+
+    // Move to the next review
+    currentIndex = (currentIndex + 1) % totalReviews;
+
+    // Show the next review
+    reviews[currentIndex].classList.remove('next');
+    reviews[currentIndex].classList.add('active'); // Slide into view
+}
+
+// Automatically cycle reviews every 4 seconds (slower transition)
+setInterval(showNextReview, 4000);
+
+console.log("Carousel script is running!"); // Debugging
+    </script>
+</body>
+</html>

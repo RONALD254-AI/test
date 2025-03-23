@@ -1,0 +1,111 @@
+/* General Styles */
+body {
+    font-family: 'Piazzolla', serif;
+    margin: 0;
+    padding: 0;
+    color: #968080;
+    line-height: 1.6;
+}
+/* Navigation Bar */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #431b1b;
+    color: #fff;
+}
+
+nav .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+nav .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+nav .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+nav .nav-links a:hover {
+    color: #7542e5;
+}
+/* Reviews Section */
+.reviews {
+    padding: 5rem 2rem;
+    text-align: center;
+    background:url(images/revivie.jpg);
+}
+
+.reviews h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #ed6a6a;
+}
+
+.carousel {
+    max-width: 800px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    height: 300px; /* Fixed height for smooth transitions */
+}
+
+.carousel-inner {
+    display: flex;
+    transition: transform 0.5s ease-in-out; /* Slow and smooth transition */
+}
+
+.carousel-item {
+    min-width: 100%;
+    box-sizing: border-box;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    opacity: 0; /* Initially hidden */
+    transition: opacity 5s ease-in-out, transform 5s ease-in-out; /* Slow and smooth transition */
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateX(100%); /* Start off-screen */
+}
+
+.carousel-item.active {
+    opacity: 1; /* Show active review */
+    transform: translateX(0); /* Slide into view */
+}
+
+.carousel-item.next {
+    transform: translateX(1%); /* Slide out to the right */
+}
+
+.carousel-item.prev {
+    transform: translateX(-1%); /* Slide out to the left */
+}
+
+.carousel-item p {
+    font-size: 1.2rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+.carousel-item strong {
+    color: #7542e5;
+}
+
+/* Footer */
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 2rem;
+}

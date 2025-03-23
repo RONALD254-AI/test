@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect page</title>
+    <style>
+        /* Navigation Bar */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #431b1b;
+    color: #fff;
+}
+
+nav .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+nav .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+nav .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+nav .nav-links a:hover {
+    color: #7542e5;
+}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background:url(images/desktop.jpg);
+        }
+        .container {
+            text-align: center;
+            background-color: #8c6363;
+            margin-bottom:20%;
+            margin-top: 10%;
+            margin-left: 20%;
+            margin-right: 20%;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 24px;
+            color: #f7f5f5;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 16px;
+            color: #d5caca;
+            margin-bottom: 30px;
+        }
+        .button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        /* Footer */
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 1rem ;
+}
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">HighRon Tech</div>
+        <ul class="nav-links">
+            <li><a href="/home">Home</a></li>
+            <li><a href="/services">Services</a></li>
+            <li><a href="/gallery">Gallery</a></li>
+            <li><a href="/team">Team</a></li>
+            <li><a href="/schedule">Scheduling</a></li>
+            <li><a href="/reviews">Customer Reviews</a></li>
+            <li><a href="/contact">Contact Us</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Let's connect and explore how we can advance technology together.</h1>
+        <p>Your journey towards innovation begins with a conversation.</p>
+        <a href="/views/chatindex.ejs" class="button" >Let's chat Now</a>
+    </div>
+     <!-- Footer -->
+     <footer>
+        <p>&copy;2023 HighRon Tech Company. All rights reserved.</p>
+    </footer>
+</body>
+</html>

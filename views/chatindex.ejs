@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Chat</title>
+    <style>
+    nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+        background-color: #431b1b;
+        color: #fff;
+    }
+    nav .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+nav .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+nav .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 400;
+    font-family:Georgia, 'Times New Roman', Times, serif;
+    font-size: large;
+}
+.button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .button:hover {
+            background-color: #6382a3;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #chat {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #fef3f3;
+        }
+        #messageForm {
+            display: flex;
+            padding: 10px;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 20px;
+            font-size: 16px;
+        }
+        #messageForm button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5%;
+            background-color: #256535;
+            color: rgb(250, 248, 248);
+            border: none;
+            cursor: pointer;
+        }
+        #messageForm button:hover {
+            background-color: #6cf165;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        .message strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+     <!-- Navigation Bar -->
+     <nav>
+        <div class="logo">HighRon Tech</div>
+
+            <a href="schedule.html" class="button">LOG OUT</a>
+
+    </nav>
+    <div id="chat"></div>
+    <form id="messageForm">
+        <input type="text" id="messageInput" placeholder="Type your message..." required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Prompt for username
+        const username = prompt('Enter your username:');
+        socket.emit('register', username);
+
+        // Display chat messages
+        const chat = document.getElementById('chat');
+        socket.on('message', (data) => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight; // Auto-scroll to the latest message
+        });
+
+        // Handle user join/leave notifications
+        socket.on('userJoined', (message) => {
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.textContent = message;
+            chat.appendChild(notification);
+            chat.scrollTop = chat.scrollHeight;
+        });
+
+        socket.on('userLeft', (message) => {
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.textContent = message;
+            chat.appendChild(notification);
+            chat.scrollTop = chat.scrollHeight;
+        });
+
+        // Handle form submission
+        const messageForm = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        messageForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('chatMessage', message);
+                messageInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>

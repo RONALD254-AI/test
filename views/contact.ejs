@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+    <link rel="stylesheet" href="inde.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="logo">HighRon Tech</div>
+        <ul class="nav-links">
+            <li><a href="/home">Home</a></li>
+            <li><a href="/services">Services</a></li>
+            <li><a href="/gallery">Gallery</a></li>
+            <li><a href="/team">Team</a></li>
+            <li><a href="/schedule">Scheduling</a></li>
+            <li><a href="/reviews">Customer Reviews</a></li>
+            <li><a href="/contact">Contact Us</a></li>
+        </ul>
+    </nav>
+    <h1>Contact Us</h1>
+    <form id="contactForm">
+        <label for="email">Email address *</label>
+        <input type="email" id="email" name="email" required><br><br>
+        
+        <label for="name">Name *</label>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="phone">Phone number</label>
+        <input type="text" id="phone" name="phone"><br><br>
+        
+        <label for="message">Message *</label>
+        <textarea id="message" name="message" required></textarea><br><br>
+        
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('/submit', {
+        method: 'POST',
+        body: JSON.stringify(Object.fromEntries(formData)),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+      .then(data => {
+          alert('Message sent successfully!');
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('There was an error submitting the form.');
+      });
+});
+    </script>
+      <!-- Footer -->
+      <footer>
+        <p><marqee>&copy;2023 HighRon Tech Company. All rights reserved.</marquee></p>
+    </footer>
+</body>
+</html>

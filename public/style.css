@@ -1,0 +1,86 @@
+/* Services Section */
+.services {
+    padding: 5rem 2rem;
+    text-align: center;
+    background:url(images/tech-image.jpg)no-repeat center center/cover;
+    
+}
+
+/* Navigation Bar */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #431b1b;
+    color: #fff;
+}
+
+nav .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+nav .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+nav .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+nav .nav-links a:hover {
+    color: #7542e5;
+}
+
+.services h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #efe4e4;
+}
+
+.service-cards {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.service-card {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 300px;
+    text-align: left;
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.service-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #7542e5;
+}
+
+.service-card p {
+    font-size: 1rem;
+    color: #726363;
+    line-height: 1.6;
+}
+/* Footer */
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 1rem;
+}
