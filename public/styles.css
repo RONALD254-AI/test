@@ -1,75 +1,101 @@
-/* public/styles.css */
+/* Global Styles */
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
 body {
-    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to right, #141E30, #243B55);
+    color: #fff;
 }
 
+/* Container */
 .container {
-    background: #fff;
-    max-width: 400px;
-    margin: 100px auto;
+    background: rgba(255, 255, 255, 0.1);
     padding: 2rem;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
 }
 
 h2 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #333;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
 }
 
+/* Form */
 form {
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    font-size: 1rem;
-}
-
-button {
-    padding: 0.75rem;
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
     border: none;
-    border-radius: 3px;
-    background-color: #007bff;
-    color: #fff;
+    border-radius: 8px;
     font-size: 1rem;
+    color: #333;
+}
+
+input:focus {
+    outline: none;
+    border: 2px solid #00c6ff;
+}
+
+/* Button */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
+    text-transform: uppercase;
+    transition: 0.3s;
+    background: #007bff;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background: #0056b3;
+    transform: scale(1.05);
 }
 
+/* Error Message */
 .error {
-    margin-top: 1rem;
-    color: red;
-    text-align: center;
+    color: #ff4d4d;
+    font-size: 0.9rem;
+    margin-top: 10px;
 }
 
+/* Links */
 p {
+    font-size: 1rem;
     margin-top: 1rem;
-    text-align: center;
 }
 
 a {
-    color: #007bff;
     text-decoration: none;
+    color: #00c6ff;
+    font-weight: bold;
+    transition: 0.3s;
 }
 
 a:hover {
-    text-decoration: underline;
+    color: #90e0ef;
 }

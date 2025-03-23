@@ -1,5 +1,6 @@
-// server.js
 const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -9,18 +10,20 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+
+const users = {}; // Object to store connected users
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Set EJS as template engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-// Serve static files (CSS, images, client JS) from 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -44,122 +47,83 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 // Routes
-// Landing Page
-app.get('/', (req, res) => {
-  res.render('index');
-});
+app.get('/', (req, res) => res.render('index'));
+app.get('/register', (req, res) => res.render('register'));
+app.get('/login', (req, res) => res.render('login'));
+app.get('/login-successful', (req, res) => res.render('login-success'));
+app.get('/home', (req, res) => res.render('home'));
+app.get('/services', (req, res) => res.render('services'));
+app.get('/gallery', (req, res) => res.render('gallery'));
+app.get('/team', (req, res) => res.render('team'));
+app.get('/schedule', (req, res) => res.render('schedule'));
+app.get('/reviews', (req, res) => res.render('reviews'));
+app.get('/contact', (req, res) => res.render('contact'));
 
-// Register Page
-app.get('/register', (req, res) => {
-  res.render('register');
-});
-
-// Register Route (Auto-verify new users)
+// Register Route
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
-
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.json({ success: false, message: 'User already exists! Try logging in.' });
-    }
-
+    if (existingUser) return res.json({ success: false, message: 'User already exists!' });
+    
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Mark verified: true
-    const newUser = new User({ 
-      username, 
-      email, 
-      password: hashedPassword,
-      verified: true 
-    });
+    const newUser = new User({ username, email, password: hashedPassword, verified: true });
     await newUser.save();
-
-    // Optional: send verification email, etc.
-
-    res.json({ success: true, message: 'Registration successful. Please log in.' });
+    
+    res.json({ success: true, message: 'Registration successful.' });
   } catch (error) {
     console.error('Error registering user:', error);
     res.json({ success: false, message: 'Server error. Please try again.' });
   }
 });
 
-// Login Page
-app.get('/login', (req, res) => {
-  res.render('login');
-});
-
 // Login Route
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await User.findOne({ email });
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.json({ success: false, message: 'Invalid email or password' });
     }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.json({ success: false, message: 'Invalid email or password' });
-    }
-
-    // Check if verified
     if (!user.verified) {
-      return res.json({ success: false, message: 'Please verify your email before logging in.' });
+      return res.json({ success: false, message: 'Please verify your email.' });
     }
-
-    // Send user details for localStorage
-    res.json({
-      success: true,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        verified: user.verified
-      }
-    });
+    res.json({ success: true, user: { id: user._id, username: user.username, email: user.email } });
   } catch (error) {
     console.error('Error logging in:', error);
-    res.json({ success: false, message: 'Server error. Please try again.' });
+    res.json({ success: false, message: 'Server error.' });
   }
 });
 
-// Login Successful Route
-app.get('/login-successful', (req, res) => {
-  res.render('login-success');
-});
+// Socket.IO Chat
+io.on('connection', (socket) => {
+    console.log('A user connected');
 
-// Home Route
-app.get('/home', (req, res) => {
-  res.render('home');
-});
+    // Handle user registration for chat
+    socket.on('register', (username) => {
+        users[socket.id] = username;
+        io.emit('userJoined', `${username} has joined the chat`);
+    });
 
-app.get('/services', (req, res) => {
-  res.render('services');
-});
+    // Handle chat messages
+    socket.on('chatMessage', (message) => {
+        const username = users[socket.id] || 'Anonymous';
+        io.emit('message', { username, message });
+    });
 
-app.get('/gallery', (req, res) => {
-  res.render('gallery');
-});
-
-app.get('/team', (req, res) => {
-  res.render('team');
-});
-
-app.get('/schedule', (req, res) => {
-  res.render('schedule');
-});
-
-app.get('/reviews', (req, res) => {
-  res.render('reviews');
-});
-
-app.get('/contact', (req, res) => {
-  res.render('contact');
+    // Handle user disconnect
+    socket.on('disconnect', () => {
+        const username = users[socket.id];
+        if (username) {
+            io.emit('userLeft', `${username} has left the chat`);
+            delete users[socket.id];
+        }
+        console.log('A user disconnected');
+    });
 });
 
 // Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
