@@ -132,6 +132,8 @@
     <div class="call-buttons">
         <button id="voiceCall">Voice Call</button>
         <button id="videoCall">Video Call</button>
+        <button id="muteButton">Mute</button>
+        <button id="endCall">End Call</button>
     </div>
     <div class="video-container" id="videoContainer"></div>
     <div id="chat"></div>
@@ -143,84 +145,177 @@
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
         const socket = io();
-        const chat = document.getElementById('chat');
-        const messageForm = document.getElementById('messageForm');
-        const messageInput = document.getElementById('messageInput');
-        const videoContainer = document.getElementById('videoContainer');
-        const videoCallButton = document.getElementById('videoCall');
-        const voiceCallButton = document.getElementById('voiceCall');
+    
+        // Elements
+        const chat = document.getElementById("chat");
+        const messageForm = document.getElementById("messageForm");
+        const messageInput = document.getElementById("messageInput");
+        const videoContainer = document.getElementById("videoContainer");
+        const videoCallButton = document.getElementById("videoCall");
+        const muteButton = document.getElementById("muteButton");
+    
         let localStream;
-        
-        let username = localStorage.getItem('username');
-        if (!username) {
-            username = prompt('Enter your username:');
-            localStorage.setItem('username', username);
+        let peerConnection;
+        let isMuted = false;
+    
+        const iceServers = {
+            iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+        };
+
+        const endCallButton = document.getElementById("endCall");
+
+// Function to end the call
+function endCall() {
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop()); // Stop media tracks
+    }
+    if (peerConnection) {
+        peerConnection.close(); // Close the peer connection
+        peerConnection = null;
+    }
+    videoContainer.innerHTML = ""; // Clear video container
+    videoContainer.style.display = "none"; // Hide video container
+
+    socket.emit("endCall"); // Notify the other user
+}
+
+// Event listener for the End Call button
+endCallButton.addEventListener("click", endCall);
+
+// Listen for incoming end call signal
+socket.on("endCall", () => {
+    endCall(); // Execute end call function when receiving the event
+});
+
+    
+        // Function to display messages in chat
+        function displayMessage(username, message) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message");
+            messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight; // Auto-scroll to latest message
         }
-        
-        socket.emit('register', username);
-        
-        socket.on('messageHistory', (messages) => {
+    
+        // Send message on form submission
+        messageForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (message !== "") {
+                socket.emit("chatMessage", { username: "You", message });
+                displayMessage("You", message);
+                messageInput.value = "";
+            }
+        });
+    
+        // Receive and display messages
+        socket.off("message"); // Remove existing listener
+        socket.on("message", ({ username, message }) => {
+            messageForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (message !== "") {
+        socket.emit("chatMessage", { username: "You", message });
+        messageInput.value = "";
+    }
+});
+        });
+    
+        // Load previous messages when connecting
+        socket.on("messageHistory", (messages) => {
+            chat.innerHTML = ""; // Clear previous messages
             messages.forEach(({ username, message }) => {
                 displayMessage(username, message);
             });
         });
-        
-        socket.on('message', ({ username, message }) => {
-            displayMessage(username, message);
-        });
-        
-        function displayMessage(user, message) {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-            if (user === username) {
-                messageElement.classList.add('own-message');
-            }
-            messageElement.innerHTML = `<strong>${user}:</strong> ${message}`;
-            chat.appendChild(messageElement);
-            chat.scrollTop = chat.scrollHeight;
-        }
-        
-        videoCallButton.addEventListener('click', async () => {
-            videoContainer.style.display = 'flex';
+    
+        // Video Call Setup
+        videoCallButton.addEventListener("click", async () => {
+            videoContainer.style.display = "flex";
             localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            addUserVideo(username, localStream);
-            socket.emit('joinCall', username);
-            addControlButtons();
+            addUserVideo("You", localStream);
+    
+            socket.emit("startCall");
+    
+            peerConnection = new RTCPeerConnection(iceServers);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) socket.emit("iceCandidate", event.candidate);
+            };
+    
+            peerConnection.ontrack = (event) => {
+                addUserVideo("Peer", event.streams[0]);
+            };
+    
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            socket.emit("offer", offer);
         });
-        
+    
+        // Handle Incoming Calls
+        socket.on("offer", async (offer) => {
+            if (!peerConnection) setupPeerConnection();
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.emit("answer", answer);
+        });
+    
+        socket.on("answer", async (answer) => {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+    
+        socket.on("iceCandidate", async (candidate) => {
+            try {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (e) {
+                console.error("Error adding ICE candidate:", e);
+            }
+        });
+    
+        // Mute/Unmute functionality
+        muteButton.addEventListener("click", () => {
+            isMuted = !isMuted;
+            localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+            muteButton.textContent = isMuted ? "Unmute" : "Mute";
+            socket.emit("muteCall", isMuted);
+        });
+    
+        // Handle mute event from peer
+        socket.on("muteCall", (muted) => {
+            const peerAudioTrack = peerConnection?.getReceivers()?.find(receiver => receiver.track.kind === "audio")?.track;
+            if (peerAudioTrack) peerAudioTrack.enabled = !muted;
+        });
+    
+        // Function to setup peer connection (for incoming calls)
+        function setupPeerConnection() {
+            peerConnection = new RTCPeerConnection(iceServers);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) socket.emit("iceCandidate", event.candidate);
+            };
+    
+            peerConnection.ontrack = (event) => {
+                addUserVideo("Peer", event.streams[0]);
+            };
+        }
+    
+        // Helper function to add user video
         function addUserVideo(user, stream) {
-            const userVideo = document.createElement('div');
-            userVideo.classList.add('user-video');
+            const userVideo = document.createElement("div");
+            userVideo.classList.add("user-video");
             userVideo.innerHTML = `<strong>${user}</strong>`;
-            const video = document.createElement('video');
+    
+            const video = document.createElement("video");
             video.autoplay = true;
             video.srcObject = stream;
+    
             userVideo.appendChild(video);
             videoContainer.appendChild(userVideo);
         }
-        
-        function addControlButtons() {
-            const controls = document.createElement('div');
-            controls.classList.add('control-buttons');
-            
-            const endCallButton = document.createElement('button');
-            endCallButton.innerText = '🔴';
-            endCallButton.onclick = () => {
-                localStream.getTracks().forEach(track => track.stop());
-                videoContainer.innerHTML = '';
-                videoContainer.style.display = 'none';
-            };
-            
-            const muteButton = document.createElement('button');
-            muteButton.innerText = '🔇';
-            muteButton.onclick = () => {
-                localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
-            };
-            
-            controls.appendChild(muteButton);
-            controls.appendChild(endCallButton);
-            videoContainer.appendChild(controls);
-        }
     </script>
+    
 </body>
 </html>
