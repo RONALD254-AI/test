@@ -145,24 +145,142 @@
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
         const socket = io();
-    
-        // Elements
-        const chat = document.getElementById("chat");
-        const messageForm = document.getElementById("messageForm");
-        const messageInput = document.getElementById("messageInput");
-        const videoContainer = document.getElementById("videoContainer");
-        const videoCallButton = document.getElementById("videoCall");
-        const muteButton = document.getElementById("muteButton");
-    
-        let localStream;
-        let peerConnection;
-        let isMuted = false;
-    
-        const iceServers = {
-            iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-        };
 
-        const endCallButton = document.getElementById("endCall");
+// Elements
+const chat = document.getElementById("chat");
+const messageForm = document.getElementById("messageForm");
+const messageInput = document.getElementById("messageInput");
+const videoContainer = document.getElementById("videoContainer");
+const videoCallButton = document.getElementById("videoCall");
+const muteButton = document.getElementById("muteButton");
+const endCallButton = document.getElementById("endCall");
+
+let localStream;
+let peerConnection;
+let isMuted = false;
+
+const iceServers = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+};
+
+// Function to display messages in chat
+function displayMessage(username, message) {
+    const messageElement = document.createElement("div");
+    messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+    chat.appendChild(messageElement);
+    chat.scrollTop = chat.scrollHeight; // Auto-scroll to latest message
+}
+
+// Send message on form submission
+messageForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (message !== "") {
+        socket.emit("chatMessage", { username: "You", message });
+        messageInput.value = "";
+    }
+});
+
+// Receive and display messages (Fix for duplicate issue)
+socket.off("message"); // Remove existing listeners before adding a new one
+socket.on("message", ({ username, message }) => {
+    displayMessage(username, message);
+});
+
+// Load previous messages when connecting
+socket.on("messageHistory", (messages) => {
+    chat.innerHTML = ""; // Clear previous messages
+    messages.forEach(({ username, message }) => {
+        displayMessage(username, message);
+    });
+});
+
+// Video Call Setup
+videoCallButton.addEventListener("click", async () => {
+    videoContainer.style.display = "flex";
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    addUserVideo("You", localStream);
+
+    socket.emit("startCall");
+
+    peerConnection = new RTCPeerConnection(iceServers);
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) socket.emit("iceCandidate", event.candidate);
+    };
+
+    peerConnection.ontrack = (event) => {
+        addUserVideo("Peer", event.streams[0]);
+    };
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit("offer", offer);
+});
+
+// Handle Incoming Calls
+socket.on("offer", async (offer) => {
+    if (!peerConnection) setupPeerConnection();
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    socket.emit("answer", answer);
+});
+
+socket.on("answer", async (answer) => {
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+});
+
+socket.on("iceCandidate", async (candidate) => {
+    try {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (e) {
+        console.error("Error adding ICE candidate:", e);
+    }
+});
+
+// Mute/Unmute functionality
+muteButton.addEventListener("click", () => {
+    isMuted = !isMuted;
+    localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+    muteButton.textContent = isMuted ? "Unmute" : "Mute";
+    socket.emit("muteCall", isMuted);
+});
+
+// Handle mute event from peer
+socket.on("muteCall", (muted) => {
+    const peerAudioTrack = peerConnection?.getReceivers()?.find(receiver => receiver.track.kind === "audio")?.track;
+    if (peerAudioTrack) peerAudioTrack.enabled = !muted;
+});
+
+// Function to setup peer connection (for incoming calls)
+function setupPeerConnection() {
+    peerConnection = new RTCPeerConnection(iceServers);
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) socket.emit("iceCandidate", event.candidate);
+    };
+
+    peerConnection.ontrack = (event) => {
+        addUserVideo("Peer", event.streams[0]);
+    };
+}
+
+// Helper function to add user video
+function addUserVideo(user, stream) {
+    const userVideo = document.createElement("div");
+    userVideo.classList.add("user-video");
+    userVideo.innerHTML = `<strong>${user}</strong>`;
+
+    const video = document.createElement("video");
+    video.autoplay = true;
+    video.srcObject = stream;
+
+    userVideo.appendChild(video);
+    videoContainer.appendChild(userVideo);
+}
 
 // Function to end the call
 function endCall() {
@@ -186,136 +304,7 @@ endCallButton.addEventListener("click", endCall);
 socket.on("endCall", () => {
     endCall(); // Execute end call function when receiving the event
 });
-
-    
-        // Function to display messages in chat
-        function displayMessage(username, message) {
-            const messageElement = document.createElement("div");
-            messageElement.classList.add("message");
-            messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
-            chat.appendChild(messageElement);
-            chat.scrollTop = chat.scrollHeight; // Auto-scroll to latest message
-        }
-    
-        // Send message on form submission
-        messageForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const message = messageInput.value.trim();
-            if (message !== "") {
-                socket.emit("chatMessage", { username: "You", message });
-                displayMessage("You", message);
-                messageInput.value = "";
-            }
-        });
-    
-        // Receive and display messages
-        socket.off("message"); // Remove existing listener
-        socket.on("message", ({ username, message }) => {
-            messageForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const message = messageInput.value.trim();
-    if (message !== "") {
-        socket.emit("chatMessage", { username: "You", message });
-        messageInput.value = "";
-    }
-});
-        });
-    
-        // Load previous messages when connecting
-        socket.on("messageHistory", (messages) => {
-            chat.innerHTML = ""; // Clear previous messages
-            messages.forEach(({ username, message }) => {
-                displayMessage(username, message);
-            });
-        });
-    
-        // Video Call Setup
-        videoCallButton.addEventListener("click", async () => {
-            videoContainer.style.display = "flex";
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            addUserVideo("You", localStream);
-    
-            socket.emit("startCall");
-    
-            peerConnection = new RTCPeerConnection(iceServers);
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-    
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) socket.emit("iceCandidate", event.candidate);
-            };
-    
-            peerConnection.ontrack = (event) => {
-                addUserVideo("Peer", event.streams[0]);
-            };
-    
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            socket.emit("offer", offer);
-        });
-    
-        // Handle Incoming Calls
-        socket.on("offer", async (offer) => {
-            if (!peerConnection) setupPeerConnection();
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            socket.emit("answer", answer);
-        });
-    
-        socket.on("answer", async (answer) => {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-        });
-    
-        socket.on("iceCandidate", async (candidate) => {
-            try {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-            } catch (e) {
-                console.error("Error adding ICE candidate:", e);
-            }
-        });
-    
-        // Mute/Unmute functionality
-        muteButton.addEventListener("click", () => {
-            isMuted = !isMuted;
-            localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
-            muteButton.textContent = isMuted ? "Unmute" : "Mute";
-            socket.emit("muteCall", isMuted);
-        });
-    
-        // Handle mute event from peer
-        socket.on("muteCall", (muted) => {
-            const peerAudioTrack = peerConnection?.getReceivers()?.find(receiver => receiver.track.kind === "audio")?.track;
-            if (peerAudioTrack) peerAudioTrack.enabled = !muted;
-        });
-    
-        // Function to setup peer connection (for incoming calls)
-        function setupPeerConnection() {
-            peerConnection = new RTCPeerConnection(iceServers);
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-    
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) socket.emit("iceCandidate", event.candidate);
-            };
-    
-            peerConnection.ontrack = (event) => {
-                addUserVideo("Peer", event.streams[0]);
-            };
-        }
-    
-        // Helper function to add user video
-        function addUserVideo(user, stream) {
-            const userVideo = document.createElement("div");
-            userVideo.classList.add("user-video");
-            userVideo.innerHTML = `<strong>${user}</strong>`;
-    
-            const video = document.createElement("video");
-            video.autoplay = true;
-            video.srcObject = stream;
-    
-            userVideo.appendChild(video);
-            videoContainer.appendChild(userVideo);
-        }
-    </script>
+ </script>
     
 </body>
 </html>

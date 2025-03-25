@@ -126,14 +126,16 @@ io.on('connection', async (socket) => {
   // Ensure only one listener is attached
   socket.removeAllListeners("chatMessage");
   socket.on('chatMessage', async ({ username, message }) => {
-      try {
-          const newMessage = new ChatMessage({ username, message, seen: false });
-          await newMessage.save();
-          io.emit('message', { username, message });
-      } catch (error) {
-          console.error("Error saving message:", error);
-      }
-  });
+    try {
+        const newMessage = new ChatMessage({ username, message, seen: false });
+        await newMessage.save();
+        
+        // Broadcast message to all users, ensuring sender is identified
+        io.emit('message', { username, message, type: "chat" });
+    } catch (error) {
+        console.error("Error saving message:", error);
+    }
+});
 
   socket.on('markMessagesSeen', async () => {
       await ChatMessage.updateMany({ seen: false }, { $set: { seen: true } });
