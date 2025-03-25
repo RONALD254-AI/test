@@ -146,6 +146,11 @@
     <script>
         const socket = io();
 
+// Prompt user for a username
+let username = localStorage.getItem("username") || prompt("Enter your username:");
+if (!username) username = "Anonymous"; // Default username if empty
+localStorage.setItem("username", username);
+
 // Elements
 const chat = document.getElementById("chat");
 const messageForm = document.getElementById("messageForm");
@@ -164,19 +169,32 @@ const iceServers = {
 };
 
 // Function to display messages in chat
-function displayMessage(username, message) {
+function displayMessage(sender, message) {
     const messageElement = document.createElement("div");
-    messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
     chat.appendChild(messageElement);
-    chat.scrollTop = chat.scrollHeight; // Auto-scroll to latest message
+    chat.scrollTop = chat.scrollHeight; // Auto-scroll
 }
+
+// Notify server of new user
+socket.emit("newUser", username);
+
+// Notify others when a user joins
+socket.on("userJoined", (name) => {
+    displayMessage("System", `${name} has joined the chat.`);
+});
+
+// Notify others when a user leaves
+socket.on("userLeft", (name) => {
+    displayMessage("System", `${name} has left the chat.`);
+});
 
 // Send message on form submission
 messageForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const message = messageInput.value.trim();
     if (message !== "") {
-        socket.emit("chatMessage", { username: "You", message });
+        socket.emit("chatMessage", { username, message });
         messageInput.value = "";
     }
 });
@@ -199,7 +217,7 @@ socket.on("messageHistory", (messages) => {
 videoCallButton.addEventListener("click", async () => {
     videoContainer.style.display = "flex";
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    addUserVideo("You", localStream);
+    addUserVideo(username, localStream);
 
     socket.emit("startCall");
 
@@ -304,6 +322,7 @@ endCallButton.addEventListener("click", endCall);
 socket.on("endCall", () => {
     endCall(); // Execute end call function when receiving the event
 });
+
  </script>
     
 </body>

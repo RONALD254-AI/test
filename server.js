@@ -14,7 +14,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-      origin: "*",
+    origin: "*",
   }
 });
 
@@ -30,8 +30,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('Error connecting to MongoDB:', err));
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch((err) => console.error('❌ Error connecting to MongoDB:', err));
 
 // Session config
 app.use(session({
@@ -78,14 +78,14 @@ app.post('/register', async (req, res) => {
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.json({ success: false, message: 'User already exists!' });
-    
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ username, email, password: hashedPassword, verified: true });
     await newUser.save();
-    
+
     res.json({ success: true, message: 'Registration successful.' });
   } catch (error) {
-    console.error('Error registering user:', error);
+    console.error('❌ Error registering user:', error);
     res.json({ success: false, message: 'Server error. Please try again.' });
   }
 });
@@ -103,82 +103,88 @@ app.post('/login', async (req, res) => {
     }
     res.json({ success: true, user: { id: user._id, username: user.username, email: user.email } });
   } catch (error) {
-    console.error('Error logging in:', error);
+    console.error('❌ Error logging in:', error);
     res.json({ success: false, message: 'Server error.' });
   }
 });
 
 // Socket.IO Chat
-io.on('connection', async (socket) => {
-  console.log('A user connected');
+let users = {}; // Store connected users
 
-  // Prevent sending message history multiple times
-  if (!socket.handshake.auth.sentHistory) {
-      const messages = await ChatMessage.find().sort({ timestamp: 1 });
-      socket.emit('messageHistory', messages);
-      socket.handshake.auth.sentHistory = true;
-  }
+io.on('connection', async (socket) => {
+  console.log('🔗 A user connected:', socket.id);
+
+  // User joins chat
+  socket.on("newUser", (username) => {
+    users[socket.id] = username; // Store username
+    io.emit("userJoined", username); // Notify others
+  });
+
+  // Send chat history
+  const messages = await ChatMessage.find().sort({ timestamp: 1 });
+  socket.emit('messageHistory', messages);
 
   // Count unseen messages
   const unseenCount = await ChatMessage.countDocuments({ seen: false });
   socket.emit('unseenMessageCount', unseenCount);
 
-  // Ensure only one listener is attached
-  socket.removeAllListeners("chatMessage");
+  // Listen for new chat messages
   socket.on('chatMessage', async ({ username, message }) => {
     try {
-        const newMessage = new ChatMessage({ username, message, seen: false });
-        await newMessage.save();
-        
-        // Broadcast message to all users, ensuring sender is identified
-        io.emit('message', { username, message, type: "chat" });
-    } catch (error) {
-        console.error("Error saving message:", error);
-    }
-});
+      const newMessage = new ChatMessage({ username, message, seen: false });
+      await newMessage.save();
 
+      // Broadcast message to all users
+      io.emit('message', { username, message, type: "chat" });
+    } catch (error) {
+      console.error("❌ Error saving message:", error);
+    }
+  });
+
+  // Mark messages as seen
   socket.on('markMessagesSeen', async () => {
-      await ChatMessage.updateMany({ seen: false }, { $set: { seen: true } });
-      io.emit('unseenMessageCount', 0);
+    await ChatMessage.updateMany({ seen: false }, { $set: { seen: true } });
+    io.emit('unseenMessageCount', 0);
+  });
+
+  // WebRTC Handlers
+  socket.on("offer", (offer) => {
+    socket.broadcast.emit("offer", offer);
+  });
+
+  socket.on("answer", (answer) => {
+    socket.broadcast.emit("answer", answer);
+  });
+
+  socket.on("iceCandidate", (candidate) => {
+    socket.broadcast.emit("iceCandidate", candidate);
+  });
+
+  socket.on("startCall", () => {
+    socket.broadcast.emit("startCall");
   });
 
   socket.on("endCall", () => {
     socket.broadcast.emit("endCall");
-});
-
-
-  // WebRTC handlers
-  socket.on("offer", (offer) => {
-      socket.broadcast.emit("offer", offer);
-  });
-
-  socket.on("answer", (answer) => {
-      socket.broadcast.emit("answer", answer);
-  });
-
-  socket.on("iceCandidate", (candidate) => {
-      socket.broadcast.emit("iceCandidate", candidate);
-  });
-
-  socket.on("startCall", () => {
-      socket.broadcast.emit("startCall");
-  });
-
-  socket.on("endCall", () => {
-      socket.broadcast.emit("endCall");
   });
 
   socket.on("muteCall", (isMuted) => {
-      socket.broadcast.emit("muteCall", isMuted);
+    socket.broadcast.emit("muteCall", isMuted);
   });
 
+  // Handle user disconnection
   socket.on('disconnect', () => {
-      console.log('A user disconnected');
-      socket.broadcast.emit("endCall");
+    console.log('🔌 A user disconnected:', socket.id);
+    if (users[socket.id]) {
+      io.emit("userLeft", users[socket.id]); // Notify others
+      delete users[socket.id]; // Remove user
+    }
+    socket.broadcast.emit("endCall"); // Ensure call is cleaned up
   });
 });
 
+// Start Server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
