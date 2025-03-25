@@ -25,36 +25,49 @@ nav .logo {
 nav .nav-links {
     list-style: none;
     display: flex;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 nav .nav-links a {
     color: #fff;
     text-decoration: none;
     font-weight: 400;
+    transition: color 0.3s ease;
 }
 
 nav .nav-links a:hover {
-    color: #7542e5;
+    color: #f39c12;
 }
 
 /* Hero Section */
 .hero {
     background:url(hero-bg.jpg);
+    background-repeat: no-repeat;
+    background-size: cover; /* or use contain, or specific dimensions */
+    background-position: center;
     color: #fff;
     padding: 5rem 2rem;
     text-align: center;
+    height: 100vh; /* Makes sure the background covers the viewport height */
+    width: 100vw; /* Ensures it covers the full width */
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevents scrolling */
+    margin-bottom: -50px;
 }
 
 .hero h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: 4.5rem;
+    margin-bottom: 2rem;
 }
 
 .hero p {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     max-width: 800px;
     margin: 0 auto 2rem;
+    margin-top: 2px;
+    margin-bottom: 20px; 
+    text-align: center;
 }
 
 .cta-button {
@@ -75,6 +88,6 @@ footer {
     background-color: #333;
     color: #fff;
     text-align: center;
-    padding: 1rem 0;
-    margin-top: 1rem;
+    padding: 2px;
+    margin-top: 0;
 }

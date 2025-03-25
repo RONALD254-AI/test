@@ -3,13 +3,19 @@
 <html>
   <head>
     <title>Login Successful - HighRon Tech</title>
-    <link rel="stylesheet" href="/styleL.css" />
+    <link rel="stylesheet" href="/stylee.css" />
   </head>
   <body>
     <div class="container">
       <h2>Login Successful!</h2>
       <p>You have successfully logged in.</p>
-      <p><a href="/home">Go to Home</a></p>
     </div>
+    <script>
+      // Redirect after 3 seconds
+      setTimeout(() => {
+          window.location.href = '/home';
+      }, 3000);
+  </script>
+
   </body>
 </html>

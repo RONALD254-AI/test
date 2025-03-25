@@ -24,17 +24,18 @@ nav .logo {
 nav .nav-links {
     list-style: none;
     display: flex;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 nav .nav-links a {
     color: #fff;
     text-decoration: none;
     font-weight: 400;
+    transition: color 0.3s ease;
 }
 
 nav .nav-links a:hover {
-    color: #7542e5;
+    color: #f39c12;
 }
 
 .services h1 {

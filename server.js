@@ -1,6 +1,6 @@
 const express = require('express');
 const http = require('http');
-const socketIo = require('socket.io');
+const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -10,10 +10,13 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
-
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = new Server(server, {
+  cors: {
+      origin: "*",
+  }
+});
 
 const users = {}; // Object to store connected users
 
@@ -98,25 +101,22 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/chat', (req, res) => {
-  res.render('chat'); // No need to add .ejs, as EJS is set as the view engine
+  res.render('chat');
 });
-
 
 // Handle Contact Form Submission
 app.post('/submit', async (req, res) => {
   const { name, email, phone, message } = req.body;
 
   try {
-      // Nodemailer Transporter Setup (Using Gmail)
       let transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
-              user: process.env.EMAIL_USER, // Your email (Use environment variables for security)
-              pass: process.env.EMAIL_PASS  // Your email password or App Password
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASS
           }
       });
 
-      // Email Content
       let mailOptions = {
           from: email,
           to: 'highrontech.united@gmail.com',
@@ -124,7 +124,6 @@ app.post('/submit', async (req, res) => {
           text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\n\nMessage:\n${message}`
       };
 
-      // Send Email
       await transporter.sendMail(mailOptions);
       res.json({ success: true, message: 'Message sent successfully!' });
 
@@ -134,23 +133,75 @@ app.post('/submit', async (req, res) => {
   }
 });
 
+const chatSchema = new mongoose.Schema({
+    username: String,
+    message: String,
+    timestamp: { type: Date, default: Date.now }
+});
+
+const ChatMessage = mongoose.model('ChatMessage', chatSchema);
+
 // Socket.IO Chat
 io.on('connection', (socket) => {
     console.log('A user connected');
 
-    // Handle user registration for chat
+    ChatMessage.find().sort({ timestamp: 1 }).then(messages => {
+        socket.emit('messageHistory', messages);
+    });
+
+    socket.on('messageHistory', (messages) => {
+      messages.forEach(({ username, message }) => {
+          displayMessage(username, message);
+      });
+  });
+  
+  socket.on('message', ({ username, message }) => {
+      displayMessage(username, message);
+  });
+  
+  function displayMessage(user, message) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message');
+      if (user === username) {
+          messageElement.classList.add('own-message');
+      }
+      messageElement.innerHTML = `<strong>${user}:</strong> ${message}`;
+      chat.appendChild(messageElement);
+      chat.scrollTop = chat.scrollHeight;
+  }
+  
+
+    socket.on('chatMessage', async ({ username, message }) => {
+        const newMessage = new ChatMessage({ username, message });
+        await newMessage.save();
+        io.emit('message', { username, message });
+    });
+
     socket.on('register', (username) => {
         users[socket.id] = username;
         io.emit('userJoined', `${username} has joined the chat`);
     });
 
-    // Handle chat messages
-    socket.on('chatMessage', (message) => {
-        const username = users[socket.id] || 'Anonymous';
-        io.emit('message', { username, message });
+    socket.on("offer", (offer) => {
+        socket.broadcast.emit("offer", offer);
     });
 
-    // Handle user disconnect
+    socket.on("answer", (answer) => {
+        socket.broadcast.emit("answer", answer);
+    });
+
+    socket.on("iceCandidate", (candidate) => {
+        socket.broadcast.emit("iceCandidate", candidate);
+    });
+
+    socket.on("startVoiceCall", async () => {
+        socket.broadcast.emit("voiceCallStarted", users[socket.id]);
+    });
+
+    socket.on("endVoiceCall", () => {
+        socket.broadcast.emit("voiceCallEnded", users[socket.id]);
+    });
+
     socket.on('disconnect', () => {
         const username = users[socket.id];
         if (username) {
@@ -161,7 +212,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Start Server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

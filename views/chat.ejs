@@ -3,46 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Open Chat</title>
+    <title>Group Chat</title>
     <style>
-    nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 2rem;
-        background-color: #431b1b;
-        color: #fff;
-    }
-    nav .logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-nav .nav-links {
-    list-style: none;
-    display: flex;
-    gap: 1.5rem;
-}
-
-nav .nav-links a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: 400;
-    font-family:Georgia, 'Times New Roman', Times, serif;
-    font-size: large;
-}
-.button {
-            background-color: #007BFF;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .button:hover {
-            background-color: #6382a3;
-        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -50,12 +12,48 @@ nav .nav-links a {
             display: flex;
             flex-direction: column;
             height: 100vh;
+            background-color: #f3e5f5;
+            background-image: url(/edited.jpg);
+            background-repeat: no-repeat;
+            background-size: cover; /*or use contain, or specific dimensions */
+            background-position: center;
+        }
+        .button {
+            background-color: #faf7f7;
+            color: #450909;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: #431b1b;
+            color: #fff;
         }
         #chat {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            border-bottom: 1px solid #fef3f3;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 60%;
+        }
+        .own-message {
+            background: #dcf8c6;
+            align-self: flex-end;
         }
         #messageForm {
             display: flex;
@@ -63,89 +61,166 @@ nav .nav-links a {
         }
         #messageInput {
             flex: 1;
-            padding: 20px;
+            padding: 10px;
             font-size: 16px;
         }
         #messageForm button {
             padding: 10px 20px;
             font-size: 16px;
-            border-radius: 5%;
+            border-radius: 5px;
             background-color: #256535;
-            color: rgb(250, 248, 248);
+            color: white;
             border: none;
             cursor: pointer;
         }
-        #messageForm button:hover {
-            background-color: #6cf165;
+        .call-buttons {
+            display: flex;
+            justify-content: right;
+            margin-top: 10px;
         }
-        .message {
-            margin-bottom: 10px;
+        .call-buttons button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: red;
+            color: white;
         }
-        .message strong {
-            color: #333;
+        .video-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .user-video {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        video {
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+        .control-buttons {
+            display: flex;
+            justify-content: right;
+            margin-top: 10px;
+        }
+        .control-buttons button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            background-color: red;
+            color: white;
+            width: 50px;
+            height: 50px;
         }
     </style>
 </head>
 <body>
-     <!-- Navigation Bar -->
-     <nav>
+    <nav>
         <div class="logo">HighRon Tech</div>
-
-            <a href="/schedule" class="button">LOG OUT</a>
-
+        <a href="/schedule" class="button">Leave</a>
     </nav>
+    <div class="call-buttons">
+        <button id="voiceCall">Voice Call</button>
+        <button id="videoCall">Video Call</button>
+    </div>
+    <div class="video-container" id="videoContainer"></div>
     <div id="chat"></div>
     <form id="messageForm">
         <input type="text" id="messageInput" placeholder="Type your message..." required>
         <button type="submit">Send</button>
     </form>
-
-    <script src="/socket.io/socket.io.js"></script>
+    
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
         const socket = io();
-
-        // Prompt for username
-        const username = prompt('Enter your username:');
-        socket.emit('register', username);
-
-        // Display chat messages
         const chat = document.getElementById('chat');
-        socket.on('message', (data) => {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-            messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
-            chat.appendChild(messageElement);
-            chat.scrollTop = chat.scrollHeight; // Auto-scroll to the latest message
-        });
-
-        // Handle user join/leave notifications
-        socket.on('userJoined', (message) => {
-            const notification = document.createElement('div');
-            notification.classList.add('notification');
-            notification.textContent = message;
-            chat.appendChild(notification);
-            chat.scrollTop = chat.scrollHeight;
-        });
-
-        socket.on('userLeft', (message) => {
-            const notification = document.createElement('div');
-            notification.classList.add('notification');
-            notification.textContent = message;
-            chat.appendChild(notification);
-            chat.scrollTop = chat.scrollHeight;
-        });
-
-        // Handle form submission
         const messageForm = document.getElementById('messageForm');
         const messageInput = document.getElementById('messageInput');
-        messageForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const message = messageInput.value.trim();
-            if (message) {
-                socket.emit('chatMessage', message);
-                messageInput.value = '';
-            }
+        const videoContainer = document.getElementById('videoContainer');
+        const videoCallButton = document.getElementById('videoCall');
+        const voiceCallButton = document.getElementById('voiceCall');
+        let localStream;
+        
+        let username = localStorage.getItem('username');
+        if (!username) {
+            username = prompt('Enter your username:');
+            localStorage.setItem('username', username);
+        }
+        
+        socket.emit('register', username);
+        
+        socket.on('messageHistory', (messages) => {
+            messages.forEach(({ username, message }) => {
+                displayMessage(username, message);
+            });
         });
+        
+        socket.on('message', ({ username, message }) => {
+            displayMessage(username, message);
+        });
+        
+        function displayMessage(user, message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            if (user === username) {
+                messageElement.classList.add('own-message');
+            }
+            messageElement.innerHTML = `<strong>${user}:</strong> ${message}`;
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight;
+        }
+        
+        videoCallButton.addEventListener('click', async () => {
+            videoContainer.style.display = 'flex';
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            addUserVideo(username, localStream);
+            socket.emit('joinCall', username);
+            addControlButtons();
+        });
+        
+        function addUserVideo(user, stream) {
+            const userVideo = document.createElement('div');
+            userVideo.classList.add('user-video');
+            userVideo.innerHTML = `<strong>${user}</strong>`;
+            const video = document.createElement('video');
+            video.autoplay = true;
+            video.srcObject = stream;
+            userVideo.appendChild(video);
+            videoContainer.appendChild(userVideo);
+        }
+        
+        function addControlButtons() {
+            const controls = document.createElement('div');
+            controls.classList.add('control-buttons');
+            
+            const endCallButton = document.createElement('button');
+            endCallButton.innerText = '🔴';
+            endCallButton.onclick = () => {
+                localStream.getTracks().forEach(track => track.stop());
+                videoContainer.innerHTML = '';
+                videoContainer.style.display = 'none';
+            };
+            
+            const muteButton = document.createElement('button');
+            muteButton.innerText = '🔇';
+            muteButton.onclick = () => {
+                localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+            };
+            
+            controls.appendChild(muteButton);
+            controls.appendChild(endCallButton);
+            videoContainer.appendChild(controls);
+        }
     </script>
 </body>
 </html>
