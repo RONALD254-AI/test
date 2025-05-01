@@ -2,7 +2,7 @@
 .services {
     padding: 5rem 2rem;
     text-align: center;
-    background:url(tech-image.jpg)no-repeat center center/cover;
+    background:url(images/tech-image.jpg)no-repeat center center/cover;
     
 }
 
@@ -24,18 +24,17 @@ nav .logo {
 nav .nav-links {
     list-style: none;
     display: flex;
-    gap: 2rem;
+    gap: 1.5rem;
 }
 
 nav .nav-links a {
     color: #fff;
     text-decoration: none;
     font-weight: 400;
-    transition: color 0.3s ease;
 }
 
 nav .nav-links a:hover {
-    color: #f39c12;
+    color: #7542e5;
 }
 
 .services h1 {

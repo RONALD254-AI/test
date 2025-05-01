@@ -3,92 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome - HighRon Tech</title>
-    <link rel="stylesheet" href="/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Home</title>
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #948686;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-            color: #fff;
-        }
-
-        .container {
+            margin: 0;
             text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
         }
-
-        h2 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        p {
-            font-size: 1.2rem;
-        }
-
-        a {
-            text-decoration: none;
-            font-weight: bold;
-            color: #00c6ff;
-            transition: 0.3s;
-        }
-
-        a:hover {
-            color: #90e0ef;
-        }
-
-        .buttons {
-            margin-top: 1rem;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            color: white;
-            border: none;
+        .container {
+            background: #efecec;
+            padding: 20px;
             border-radius: 8px;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: 0.3s;
+            box-shadow: 0 0 10px rgba(230, 212, 212, 0.1);
+            width: 300px;
         }
-
-        .btn-login {
-            background: #007bff;
+        h1 {
+            color: #8e6363;
         }
-
-        .btn-register {
-            background: #28a745;
+        a {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 15px;
+            text-decoration: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 4px;
+            font-size: 16px;
         }
-
-        .btn:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
+        a:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Welcome to HighRon Tech</h2>
-        <p>Join us and explore the future of technology.</p>
-        <div class="buttons">
-            <a href="/login" class="btn btn-login">Login</a>
-            <a href="/register" class="btn btn-register">Register</a>
-        </div>
+        <h1>Welcome to the HighRon Tech</h1>
+        <a href="/register">Register</a>
+        <a href="/login">Login</a>
     </div>
 </body>
 </html>

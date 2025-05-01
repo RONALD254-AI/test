@@ -1,53 +1,59 @@
-<!-- views/login.ejs -->
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - HighRon Tech</title>
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h2>Login</h2>
-      <form id="loginForm">
-        <input type="email" id="email" placeholder="Email" required />
-        <input type="password" id="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-      </form>
-      <p id="errorMessage" class="error"></p>
-      <p>Don't have an account? <a href="/register">Register</a></p>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p id="errorMessage"></p>
     </div>
 
     <script>
-      document.getElementById('loginForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
 
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-        try {
-          const response = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-          });
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
 
-          const data = await response.json();
-          if (data.success) {
-            localStorage.setItem('user', JSON.stringify(data.user));
-            window.location.href = '/home';
-          } else {
-            document.getElementById('errorMessage').innerText = data.message;
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          document.getElementById('errorMessage').innerText = 'Server error. Please try again.';
+                const data = await response.json();
+
+                if (data.success) {
+                    // ✅ Store user data in localStorage
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    // ✅ Redirect to login success page
+                    window.location.href = '/login-successful';
+                } else {
+                    document.getElementById('errorMessage').innerText = data.message;
+                    document.getElementById('errorMessage').style.color = 'red';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').innerText = 'An error occurred. Please try again.';
+                document.getElementById('errorMessage').style.color = 'red';
+            }
+        });
+
+        // ✅ Redirect if already logged in
+        if (localStorage.getItem('user')) {
+            window.location.href = '/login-successful';
         }
-      });
-
-      // Redirect if already logged in
-      if (localStorage.getItem('user')) {
-        window.location.href = '/login-successful';
-      }
     </script>
-  </body>
+</body>
 </html>

@@ -115,69 +115,42 @@ io.on('connection', async (socket) => {
   console.log('🔗 A user connected:', socket.id);
 
   // User joins chat
-  socket.on("newUser", (username) => {
-    users[socket.id] = username; // Store username
-    io.emit("userJoined", username); // Notify others
+  socket.on("newUser", async (username) => {
+    onlineUsers[socket.id] = username; // Store username
+    io.emit("userJoined", { username, onlineUsers });
+
+    // Send chat history ONCE when user joins
+    const messages = await ChatMessage.find().sort({ timestamp: 1 }).limit(50);
+    socket.emit('messageHistory', messages);
   });
 
-  // Send chat history
-  const messages = await ChatMessage.find().sort({ timestamp: 1 });
-  socket.emit('messageHistory', messages);
-
-  // Count unseen messages
-  const unseenCount = await ChatMessage.countDocuments({ seen: false });
-  socket.emit('unseenMessageCount', unseenCount);
-
-  // Listen for new chat messages
+  // Faster message sending: Emit message **before** saving to MongoDB
   socket.on('chatMessage', async ({ username, message }) => {
-    try {
-      const newMessage = new ChatMessage({ username, message, seen: false });
-      await newMessage.save();
+    const chatData = { username, message, timestamp: new Date() };
 
-      // Broadcast message to all users
-      io.emit('message', { username, message, type: "chat" });
-    } catch (error) {
-      console.error("❌ Error saving message:", error);
-    }
+    // 🔹 Send message instantly before saving to DB
+    io.emit('message', chatData);
+
+    // 🔹 Save message asynchronously without blocking execution
+    ChatMessage.create(chatData).catch(err => console.error("❌ Error saving message:", err));
   });
 
-  // Mark messages as seen
-  socket.on('markMessagesSeen', async () => {
-    await ChatMessage.updateMany({ seen: false }, { $set: { seen: true } });
-    io.emit('unseenMessageCount', 0);
+  // Typing indicator
+  socket.on('typing', (username) => {
+    socket.broadcast.emit('userTyping', username);
   });
 
-  // WebRTC Handlers
-  socket.on("offer", (offer) => {
-    socket.broadcast.emit("offer", offer);
+  socket.on('stopTyping', (username) => {
+    socket.broadcast.emit('userStoppedTyping', username);
   });
 
-  socket.on("answer", (answer) => {
-    socket.broadcast.emit("answer", answer);
-  });
-
-  socket.on("iceCandidate", (candidate) => {
-    socket.broadcast.emit("iceCandidate", candidate);
-  });
-
-  socket.on("startCall", () => {
-    socket.broadcast.emit("startCall");
-  });
-
-  socket.on("endCall", () => {
-    socket.broadcast.emit("endCall");
-  });
-
-  socket.on("muteCall", (isMuted) => {
-    socket.broadcast.emit("muteCall", isMuted);
-  });
-
-  // Handle user disconnection
+  // Handle user disconnecting
   socket.on('disconnect', () => {
     console.log('🔌 A user disconnected:', socket.id);
-    if (users[socket.id]) {
-      io.emit("userLeft", users[socket.id]); // Notify others
-      delete users[socket.id]; // Remove user
+    if (onlineUsers[socket.id]) {
+      const username = onlineUsers[socket.id];
+      delete onlineUsers[socket.id]; // Remove user
+      io.emit("userLeft", { username, onlineUsers });
     }
     socket.broadcast.emit("endCall"); // Ensure call is cleaned up
   });

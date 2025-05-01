@@ -1,50 +1,69 @@
-<!-- views/register.ejs -->
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Register - HighRon Tech</title>
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #b5a9a9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #858282;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
     <div class="container">
-      <h2>Register</h2>
-      <form id="registerForm">
-        <input type="text" id="username" placeholder="Username" required />
-        <input type="email" id="email" placeholder="Email" required />
-        <input type="password" id="password" placeholder="Password" required />
-        <button type="submit">Register</button>
-      </form>
-      <p id="errorMessage" class="error"></p>
-      <p>Already have an account? <a href="/login">Login</a></p>
+        <h1>Register</h1>
+        <form id="registerForm">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Register</button>
+        </form>
     </div>
 
     <script>
-      document.getElementById('registerForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
 
-        const username = document.getElementById('username').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-
-        try {
-          const response = await fetch('/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
-          });
-
-          const data = await response.json();
-          if (data.success) {
-            alert('Registration successful! You can now log in.');
-            window.location.href = '/login';
-          } else {
-            document.getElementById('errorMessage').innerText = data.message;
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          document.getElementById('errorMessage').innerText = 'Server error. Please try again.';
-        }
-      });
+            // Simulate a successful registration
+            // In a real-world scenario, you would send the data to a server and handle the response
+            setTimeout(() => {
+                window.location.href = '/login-successful'; // Redirect to the "Login Successful" page
+            }, 1000); // Simulate a delay for the registration process
+        });
     </script>
-  </body>
+</body>
 </html>
