@@ -1,42 +1,21 @@
+<!-- views/login-success.ejs -->
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Successful</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #c0a4a4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-        }
-        .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-        }
-        h1 {
-            color: #28a745;
-        }
-    </style>
-</head>
-<body>
+<html>
+  <head>
+    <title>Login Successful - HighRon Tech</title>
+    <link rel="stylesheet" href="/stylee.css" />
+  </head>
+  <body>
     <div class="container">
-        <h1>Loading...</h1>
-        <p>Wait as we process you request...</p>
+      <h2>Login Successful!</h2>
+      <p>You have successfully logged in.</p>
     </div>
     <script>
-        // Redirect after 3 seconds
-        setTimeout(() => {
-            window.location.href = '/login';
-        }, 3000);
-    </script>
-</body>
+      // Redirect after 3 seconds
+      setTimeout(() => {
+          window.location.href = '/home';
+      }, 3000);
+  </script>
+
+  </body>
 </html>

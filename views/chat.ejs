@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f3e5f5;
+            background-image: url(/edited.jpg);
+            background-repeat: no-repeat;
+            background-size: cover; /*or use contain, or specific dimensions */
+            background-position: center;
+        }
+        .button {
+            background-color: #faf7f7;
+            color: #450909;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: #431b1b;
+            color: #fff;
+        }
+        #chat {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 60%;
+        }
+        .own-message {
+            background: #dcf8c6;
+            align-self: flex-end;
+        }
+        #messageForm {
+            display: flex;
+            padding: 10px;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #messageForm button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            background-color: #256535;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .call-buttons {
+            display: flex;
+            justify-content: right;
+            margin-top: 10px;
+        }
+        .call-buttons button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: red;
+            color: white;
+        }
+        .video-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .user-video {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        video {
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+        .control-buttons {
+            display: flex;
+            justify-content: right;
+            margin-top: 10px;
+        }
+        .control-buttons button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            background-color: red;
+            color: white;
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">HighRon Tech</div>
+        <a href="/schedule" class="button">Leave</a>
+    </nav>
+    <div class="call-buttons">
+        <button id="voiceCall">Voice Call</button>
+        <button id="videoCall">Video Call</button>
+        <button id="muteButton">Mute</button>
+        <button id="endCall">End Call</button>
+    </div>
+    <div class="video-container" id="videoContainer"></div>
+    <div id="chat"></div>
+    <form id="messageForm">
+        <input type="text" id="messageInput" placeholder="Type your message..." required>
+        <button type="submit">Send</button>
+    </form>
+    
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        
+        // Get elements
+        const chatBox = document.getElementById('chat-box');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+      
+        // Get username and store it locally
+        let username = localStorage.getItem("username") || prompt("Enter your username:");
+        if (!username) username = "Anonymous";
+        localStorage.setItem("username", username);
+        socket.emit("newUser", username);
+      
+        // Load previous chat history
+        socket.on('messageHistory', (messages) => {
+          chatBox.innerHTML = ""; // Clear old messages
+          messages.forEach(msg => displayMessage(msg.username, msg.message));
+        });
+      
+        // Receive new messages instantly
+        socket.on('message', ({ username, message }) => {
+          displayMessage(username, message);
+        });
+      
+        // Typing indicator handling
+        socket.on('userTyping', (username) => {
+          typingIndicator.innerText = `${username} is typing...`;
+        });
+      
+        socket.on('userStoppedTyping', () => {
+          typingIndicator.innerText = '';
+        });
+      
+        // Send message
+        sendButton.addEventListener('click', () => {
+          const message = messageInput.value.trim();
+          if (message !== '') {
+            displayMessage(username, message);
+            socket.emit('chatMessage', { username, message });
+            messageInput.value = '';
+            socket.emit('stopTyping', username);
+          }
+        });
+      
+        // Typing event listeners
+        messageInput.addEventListener('input', () => {
+          socket.emit('typing', username);
+        });
+      
+        messageInput.addEventListener('blur', () => {
+          socket.emit('stopTyping', username);
+        });
+      
+        // Function to display messages
+        function displayMessage(user, msg) {
+          const messageElement = document.createElement('p');
+          messageElement.innerHTML = `<strong>${user}:</strong> ${msg}`;
+          chatBox.appendChild(messageElement);
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+      </script>
+      
+    
+</body>
+</html>
