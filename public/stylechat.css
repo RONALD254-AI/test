@@ -1,3 +1,4 @@
+/* Base Styles */
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -8,6 +9,7 @@ body {
   height: 100vh;
 }
 
+/* Chat Container */
 .chat-container {
   width: 400px;
   max-height: 90vh;
@@ -19,6 +21,7 @@ body {
   overflow: hidden;
 }
 
+/* Header */
 .chat-header {
   background-color: #075e54;
   color: white;
@@ -39,6 +42,7 @@ body {
   font-weight: bold;
 }
 
+/* Chat Box */
 .chat-box {
   flex: 1;
   padding: 10px;
@@ -46,6 +50,7 @@ body {
   background-color: #ece5dd;
 }
 
+/* Messages */
 .message {
   display: flex;
   margin-bottom: 12px;
@@ -53,21 +58,21 @@ body {
   gap: 8px;
 }
 
-.message.other {
+.message.writer {
   flex-direction: row-reverse;
   text-align: right;
 }
 
 .message-content {
   max-width: 70%;
-  background-color: #fff;
+  background-color: #dcf8c6;
   padding: 8px 12px;
   border-radius: 8px;
   position: relative;
 }
 
-.message.other .message-content {
-  background-color: #dcf8c6;
+.message.writer .message-content {
+  background-color: #fff;
 }
 
 .message-text {
@@ -79,12 +84,14 @@ body {
   color: #555;
 }
 
+/* Avatars */
 .avatar {
   width: 30px;
   height: 30px;
   border-radius: 50%;
 }
 
+/* Input Area */
 .chat-input {
   display: flex;
   padding: 10px;
@@ -116,11 +123,13 @@ body {
   background-color: #0b7d6b;
 }
 
+/* Checkmarks */
 .checkmarks {
   color: #34b7f1;
   margin-left: 5px;
 }
 
+/* Sender Name */
 .sender-name {
   font-weight: bold;
   font-size: 13px;
@@ -128,7 +137,7 @@ body {
   margin-bottom: 2px;
 }
 
-/* Modal */
+/* Modal for Name Prompt */
 .modal {
   position: fixed;
   top: 0;
@@ -172,6 +181,7 @@ body {
   cursor: pointer;
 }
 
+/* Utility */
 .hidden {
   display: none;
 }

@@ -1,3 +1,4 @@
+// Updated server.js with MongoDB, authentication, and Socket.IO chat
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -109,7 +110,7 @@ app.post('/login', async (req, res) => {
 });
 
 // Socket.IO Chat
-let users = {}; // Store connected users
+let onlineUsers = {}; // Store connected users
 
 io.on('connection', async (socket) => {
   console.log('🔗 A user connected:', socket.id);
