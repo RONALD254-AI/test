@@ -1,34 +1,70 @@
 let userName = '';
+const socket = io();
 
 document.addEventListener('DOMContentLoaded', () => {
   const modal = document.getElementById('nameModal');
   const chatUI = document.querySelector('.chat-container');
+  const input = document.getElementById('message');
+  const sendBtn = document.getElementById('send-btn');
+  const chatBox = document.getElementById('chat-box');
 
+  // Prompt user to enter name
   document.getElementById('nameSubmit').addEventListener('click', () => {
     const nameInput = document.getElementById('nameInput');
     if (nameInput.value.trim()) {
       userName = nameInput.value.trim();
       modal.style.display = 'none';
       chatUI.classList.remove('hidden');
+
+      socket.emit('newUser', userName);
     }
   });
 
-  document.getElementById('send-btn').addEventListener('click', () => {
-    const input = document.getElementById('message');
+  // Send message on button click
+  sendBtn.addEventListener('click', sendMessage);
+
+  // Send message on Enter key
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+
+  // Send message function
+  function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
 
-    const chatBox = document.getElementById('chat-box');
     const msg = createMessage(text, 'writer', userName);
     chatBox.appendChild(msg.element);
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Seen after 3s
+    socket.emit('chatMessage', { username: userName, message: text });
+
+    // Seen after 3s (for UI only)
     setTimeout(() => {
       msg.info.innerHTML = `${msg.time} <span class="checkmarks">✔✔</span>`;
     }, 3000);
 
     input.value = '';
+  }
+
+  // Receive previous chat history
+  socket.on('messageHistory', (messages) => {
+    messages.forEach(({ username, message }) => {
+      const role = username === userName ? 'writer' : 'responder';
+      const msg = createMessage(message, role, username);
+      chatBox.appendChild(msg.element);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+
+  // Receive live messages
+  socket.on('message', ({ username, message }) => {
+    if (username === userName) return; // Already rendered own message
+    const msg = createMessage(message, 'responder', username);
+    chatBox.appendChild(msg.element);
+    chatBox.scrollTop = chatBox.scrollHeight;
   });
 });
 
